@@ -33,7 +33,7 @@ The script requires two files - in the same directory by default:
 
  The files are available at:
 https://raw.githubusercontent.com/andywalden/mfe2snow/master/logging.conf
-https://raw.githubusercontent.com/andywalden/mf22snow/config.ini
+https://raw.githubusercontent.com/andywalden/mfe2snow/master/config.ini
 
 The config.ini must be updated with the hostname and credentials to
 access ServiceNow. If syslog feedback is used then the Receiver host
