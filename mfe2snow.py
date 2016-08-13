@@ -33,7 +33,7 @@ The script requires two files - in the same directory by default:
 
  The files are available at:
 https://raw.githubusercontent.com/andywalden/mfe2snow/master/logging.conf
-https://raw.githubusercontent.com/andywalden/mfe2snow/master/config.ini
+https://raw.githubusercontent.com/andywalden/mf22snow/config.ini
 
 The config.ini must be updated with the hostname and credentials to
 access ServiceNow. If syslog feedback is used then the Receiver host
@@ -57,7 +57,10 @@ __author__ = "Andy Walden"
 __version__ = "1.0"
 
 class Args(object):
-
+    """
+    Handles any args and passes them back as a dict
+    """
+    
     def __init__(self, args):
         self.log_levels = ["quiet", "error", "warning", "info", "debug"]
         self.formatter_class = argparse.RawDescriptionHelpFormatter
@@ -91,7 +94,8 @@ class Args(object):
 
         
 class Syslog(object):
-    """Open TCP socket using supplied server IP and port. 
+    """
+    Open TCP socket using supplied server IP and port. 
        
     Returns socket or None on failure
     """
@@ -115,13 +119,12 @@ class Syslog(object):
         self.sock.sendall(data.encode())
         logging.info("Syslog feedback sent")
 
+
 class SNOW(object):
-    """ Send to ServiceNow API 
-    
+    """ 
+    Send to ServiceNow API 
     Initialize with host, user and passwd to create connection.
-    
-    post() sends JSON query to SNOW.
-    
+    send() sends JSON query to SNOW.
     """
 
     def __init__(self, host, user, passwd):
@@ -139,9 +142,10 @@ class SNOW(object):
 
 
     def send(self, query_conf, uri_string):
-        """ Takes API query (usually JSON string) and the
-            part of the URI that is after the hostname.
-            Runs query and returns result object. """
+        """ 
+        Sends URI method and JSON query string
+        Runs query and returns result object. 
+        """
 
         self.query_conf = query_conf
         self.uri_string = uri_string
@@ -152,15 +156,18 @@ class SNOW(object):
         return result
 
 class Query(object):
-
+    """
+    Returns JSON query from provided dict
+    """
+    
     def __init__(self):
         self.qconf = []
 
     def create(self, **kwargs):
         self.query_dict = kwargs
         self.alarm = self.query_dict.pop('alarm', 'McAfee ESM Alarm')
-        self.node = self.query_dict.get('source-ip', '0.0.0.0')
-        
+        self.node = self.query_dict.pop('node', '0.0.0.0')
+        self.severity = self.query_dict.pop('severity', '25')
         self.info = ", ".join(["=".join([key, str(val)]) 
                               for key, val in self.query_dict.items()])
         
@@ -173,7 +180,7 @@ class Query(object):
             "type" : "ESM" ,
             "message_key" : "abc123",
             "additional_info" : self.info,
-            "severity" : "7",
+            "severity" : self.severity,
             "state" : "Ready",
             "sys_class_name" : "em_event",
             "sys_created_by" : "mcafee.integration"
@@ -181,6 +188,7 @@ class Query(object):
 
         return(json.dumps(self.qconf))
 
+        
         
 def main():
     """ Main function """
@@ -200,8 +208,8 @@ def main():
     if pargs.cfgfile:
         configfile = pargs.cfgfile
     else:
-        configfile = 'config.ini'
-    
+        configfile = '.config.ini'
+    # Assign variables from config
     if os.path.isfile(configfile):
         logging.debug("Config file detected: %s", configfile)
         confparse = SafeConfigParser()
@@ -210,17 +218,54 @@ def main():
         host = config['snowhost']
         user = config['snowuser']
         passwd = config['snowpass']
+        homenet = [config['homenet']]
     else:
         logging.error("Config file not found: %s", pargs.cfgfile)
         sys.exit()
-   
+    
+    # Check for IPs in arguments
+    destip = fields.get('destip', None)
+    sourceip = fields.get('sourceip', None)
+    
+    # Figure out which IP should be 'node'
+    if sourceip:
+        for subnet in homenet:
+            if ipaddress.ip_address(sourceip) in ipaddress.ip_network(subnet):
+                fields['node'] = sourceip
+            elif ipaddress.ip_address(destip) in ipaddress.ip_network(subnet):
+                fields['node'] = destip
+            else:
+                fields['node'] = sourceip
+
+    # Check for severity in arguments. Map ESM severity (1-100) to SNOW (1-5)
+    severity = int(fields.get('severity', None))
+    if severity:
+        if 90 <= severity <= 100:
+            # Critical
+            fields['severity'] = '1'
+            # Major
+        elif 75 <= severity <= 89:
+            # Minor
+            fields['severity'] = '2'
+        elif 65 <= severity <= 74:
+            # Warning
+            fields['severity'] = '3'
+        elif 50 <= severity <= 64:
+            # Info
+            fields['severity'] = '4'
+        elif 0 <= severity <= 49:
+            fields['severity'] = '5'
+ 
+    
     # Create ServiceNow connection
     snowhost = SNOW(host, user, passwd)
     
+    # New ticket query
     new_ticket = Query()
     new_ticket_q = new_ticket.create(**fields)
     result = snowhost.send(new_ticket_q, '/api/now/table/em_event')
-
+    
+    # Syslog feedback to ESM
     try:
         syslog_host = config.get('sysloghost')
         syslog_port = config.get('syslogport')
