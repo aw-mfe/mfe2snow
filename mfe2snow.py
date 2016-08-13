@@ -54,7 +54,7 @@ expose any credentials.
 """
 
 __author__ = "Andy Walden"
-__version__ = "1.0"
+__version__ = "1.1a"
 
 class Args(object):
     """
@@ -85,7 +85,9 @@ class Args(object):
                                  help="Path to config file. Default: config.ini")
 
         self.parser.add_argument("fields", nargs='*', metavar='',
-                                 help="Key=Values for the query")
+        
+                                 help="Key=Values for the query. Example: \n  \
+                                 alarm=\"The milk has spilled\" sourceip=\"1.1.1.1\", destip=\"2.2.2.2\"")
 
         self.pargs = self.parser.parse_args()
 
@@ -196,7 +198,11 @@ def main():
     # Process any command line args
     args = Args(sys.argv)
     pargs = args.get_args()
-    fields = dict(x.split('=', 1) for x in pargs.fields)
+    try:
+        fields = dict(x.split('=', 1) for x in pargs.fields)
+    except ValueError:
+        logging.error("Invalid input. Format is field=value")
+        sys.exit(1)
     # Read in logging file
     logging.config.fileConfig("logging.conf")
     # Look for logging override
@@ -208,7 +214,7 @@ def main():
     if pargs.cfgfile:
         configfile = pargs.cfgfile
     else:
-        configfile = '.config.ini'
+        configfile = 'config.ini'
     # Assign variables from config
     if os.path.isfile(configfile):
         logging.debug("Config file detected: %s", configfile)
