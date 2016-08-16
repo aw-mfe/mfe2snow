@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nitro_policy esm="33EA:8653" time="08/16/2016 07:58:11" user="" build="9.6.0 20160506210939" model="ENMELM-VM4" version="9006000">
+  <rules count="1">
+    <rule>
+      <id>5000137</id>
+      <normid>1344274432</normid>
+      <revision>0</revision>
+      <sid>0</sid>
+      <class>2</class>
+      <message>ServiceNow Ticket Created</message>
+      <description/>
+      <origin>1</origin>
+      <severity>25</severity>
+      <type>1</type>
+      <action>5</action>
+      <action_initial>5</action_initial>
+      <action_disallowed>0</action_disallowed>
+      <other_bits_default>4</other_bits_default>
+      <other_bits_disallowed>0</other_bits_disallowed>
+      <text><![CDATA[any any any -> any any (msg:"ServiceNow Ticket Created";adsid:777;content:"resolution_state";content:"processing_sn_node";json;var@{Description}:${result.additional_info};var@{firsttime,lasttime}:${result.time_of_event};var@{Return_Code}:${result.sys_id};var@{Rule_Name}:${result.description};var@{src_ip}:${result.node};var@{UserIDSrc}:${result.sys_created_by};var@{Status}:${result.resolution_state};)]]></text>
+    </rule>
+  </rules>
+</nitro_policy>
