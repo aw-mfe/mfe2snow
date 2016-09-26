@@ -304,7 +304,6 @@ def main():
     new_ticket = Query()
     new_ticket_q = new_ticket.create(**fields)
     result = snowhost.send(new_ticket_q, '/api/now/table/em_event')
-    print(new_ticket_q)
 
     # Syslog feedback to ESM
     try:
