@@ -10,9 +10,11 @@ The script requires a config.ini file for the credentials. The filename and
 path can be set from the command line.
 
 An example config.ini is available at:
+
 https://raw.githubusercontent.com/andywalden/mfe2snow/config.ini
 
 Example:
+
     $ python mfe2snow.py alarm="This is my alarm" severity="50"
 
 This is intended to be called as an alarm action to Execute a Script. In the ESM,
@@ -23,12 +25,13 @@ mapped to ServiceNow fields. Remaining fields=values are mapped to SNOW field
 "Additional Info".
 
 This is an example of the script being called from the ESM Execute Command Profile:
-mfe2snow.py alarm="[$Alarm Name]" eventdescription="[$Rule Message]" severity="[$Average Severity]"
-devicename="[$Device Name]" message_key="[$Event ID]" category="[$Normalized Rule]" sourceip="[$Source IP]"
-destip="[$Destination IP]" sourceport="[$Source Port]" destport="[$Destination Port]" host="[$%HostID]"
-domain="[$%DomainID]" command="[$%CommandID]" object="[$%ObjectID]" application="[$%AppID]"
-deviceaction="[$%Device_Action]" targetuser="[$%UserIDDst]" threatcategory="[$%Threat_Category]"
-threathandled="[$%Threat_Handled]" geosrc="[$Geolocation Source]" geodest="[$Geolocation Destination]"
+
+    mfe2snow.py alarm="[$Alarm Name]" eventdescription="[$Rule Message]" severity="[$Average Severity]"
+    devicename="[$Device Name]" message_key="[$Event ID]" category="[$Normalized Rule]" sourceip="[$Source IP]"
+    destip="[$Destination IP]" sourceport="[$Source Port]" destport="[$Destination Port]" host="[$%HostID]"
+    domain="[$%DomainID]" command="[$%CommandID]" object="[$%ObjectID]" application="[$%AppID]"
+    deviceaction="[$%Device_Action]" targetuser="[$%UserIDDst]" threatcategory="[$%Threat_Category]"
+    threathandled="[$%Threat_Handled]" geosrc="[$Geolocation Source]" geodest="[$Geolocation Destination]"
 
 
 The output is also written to a file that is overwritten each time the script is run.
